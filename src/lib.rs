@@ -5,6 +5,7 @@ use perm::{Action, Table};
 use rand::{distributions::Standard, Rng, SeedableRng};
 use rand_chacha::ChaCha20Rng;
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct GraphIsomorphismPf<const N: usize> {
     a: Graph<N>,
     b: Graph<N>,
@@ -44,7 +45,6 @@ pub fn prove<const N: usize>(
     ))
     .expect("can serialize normal stuff");
     let seed = blake3::hash(&ctx).as_bytes().clone();
-    eprintln!("seed: {:?}", seed);
     let mut rng = ChaCha20Rng::from_seed(seed);
     let bools = (0..m).map(|_| rng.sample(Standard)).collect::<Vec<bool>>();
     let isos = (0..m)
@@ -67,7 +67,6 @@ pub fn verify<const N: usize>(pf: &GraphIsomorphismPf<N>) -> bool {
     let m = pf.cs.len();
     let ctx = bincode::serialize(&(&pf.a, &pf.b, &pf.cs)).expect("can serialize normal stuff");
     let seed = blake3::hash(&ctx).as_bytes().clone();
-    eprintln!("seed: {:?}", seed);
     let mut rng = ChaCha20Rng::from_seed(seed);
     let bools = (0..m).map(|_| rng.sample(Standard)).collect::<Vec<bool>>();
 
@@ -86,9 +85,15 @@ pub fn verify<const N: usize>(pf: &GraphIsomorphismPf<N>) -> bool {
 
 #[test]
 fn examples() {
-    let mut a: Graph<3> = rand::random();
-    let t: Table<3> = rand::random();
-    let mut b = t.act(&a);
-    let pf = prove(a, b, t, 20);
-    assert!(verify(&pf))
+    for _i in 0..10 {
+        let a: Graph<100> = rand::random();
+        let t: Table<100> = rand::random();
+        let b = t.act(&a);
+        let pf = prove(a, b, t, 20);
+        let serialized_pf = bincode::serialize(&pf).expect("can serialize");
+        let deserialized_pf: GraphIsomorphismPf<100> =
+            bincode::deserialize(&serialized_pf).expect("c'mon");
+        assert_eq!(pf, deserialized_pf);
+        assert!(verify(&pf))
+    }
 }

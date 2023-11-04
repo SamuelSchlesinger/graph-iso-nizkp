@@ -28,7 +28,9 @@ impl<'a, const N: usize> Deserialize<'a> for Graph<N> {
         let v: Vec<Vec<bool>> = Vec::deserialize(deserializer)?;
         for (iv, i) in v.into_iter().zip(0..) {
             if iv.len() != N {
-                panic!("omg");
+                return Err(<D::Error as serde::de::Error>::custom::<&str>(
+                    "not enough input",
+                ));
             }
             for (b, j) in iv.into_iter().zip(0..) {
                 graph.adjacencies[i][j] = b;
