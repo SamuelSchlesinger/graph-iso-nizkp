@@ -86,11 +86,9 @@ pub fn verify<const N: usize>(pf: &GraphIsomorphismPf<N>) -> bool {
 
 #[test]
 fn examples() {
-    let mut a: Graph<3> = Graph::disconnected();
-    a.set(0, 1, true);
-    let mut b = Graph::disconnected();
-    b.set(1, 0, true);
-    let t = Table::swap(0, 1);
+    let mut a: Graph<3> = rand::random();
+    let t: Table<3> = rand::random();
+    let mut b = t.act(&a);
     let pf = prove(a, b, t, 20);
     assert!(verify(&pf))
 }

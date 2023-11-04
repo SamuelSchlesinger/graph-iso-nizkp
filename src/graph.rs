@@ -1,9 +1,22 @@
 use perm::{Action, Table};
+use rand::{distributions::Standard, prelude::Distribution};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Graph<const N: usize> {
     adjacencies: [[bool; N]; N],
+}
+
+impl<const N: usize> Distribution<Graph<N>> for Standard {
+    fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> Graph<N> {
+        let mut g = Graph::disconnected();
+        for i in 0..N {
+            for j in 0..N {
+                g.adjacencies[i][j] = rng.sample(Standard);
+            }
+        }
+        g
+    }
 }
 
 impl<'a, const N: usize> Deserialize<'a> for Graph<N> {
